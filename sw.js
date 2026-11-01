@@ -1,7 +1,7 @@
 /* Service worker do Marcador de Pontos.
    Guarda o app no aparelho para abrir sem internet.
    Ao alterar qualquer arquivo, aumente VERSION para os aparelhos pegarem a novidade. */
-var VERSION = 'marcador-v1';
+var VERSION = 'marcador-v2';
 var SHELL = [
   './',
   'index.html',

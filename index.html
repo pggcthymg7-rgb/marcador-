@@ -124,11 +124,14 @@ main{min-width:0}
 .plist{display:grid}
 .prow{border-top:1px solid var(--line)}
 .prow:first-child{border-top:0}
-.pr{display:grid;grid-template-columns:34px minmax(0,1fr) 100px;align-items:center;gap:12px;padding:12px 0;cursor:text}
+.pr{display:grid;grid-template-columns:34px minmax(0,1fr) 128px;align-items:center;gap:12px;padding:12px 0;cursor:text}
 .pos{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;font:800 16px var(--round);background:hsl(var(--h) var(--ts) var(--tl));color:hsl(var(--h) var(--hs) var(--hl))}
 .pname{display:block;font-size:19px;font-weight:700;line-height:1.15;overflow-wrap:anywhere;color:hsl(var(--h) var(--hs) var(--hl))}
 .psub{display:block;margin-top:3px;font-size:13px;color:var(--ink-2)}
-.pin{width:100px;height:54px;padding:0 14px;text-align:right;border:1.5px solid transparent;border-radius:12px;background:var(--field);color:var(--ink);font:800 26px var(--round);font-variant-numeric:tabular-nums}
+.ig{position:relative}
+.sg{position:absolute;left:7px;top:7px;width:40px;height:40px;border:0;border-radius:10px;background:var(--surface);color:var(--ink-2);font:800 22px var(--round);line-height:1}
+.sg[aria-pressed="true"]{background:var(--btn-bg);color:var(--btn-fg)}
+.pin{width:100%;height:54px;padding:0 14px 0 52px;text-align:right;border:1.5px solid transparent;border-radius:12px;background:var(--field);color:var(--ink);font:800 26px var(--round);font-variant-numeric:tabular-nums}
 .prow.gone .pos{background:var(--gone-bg);color:var(--gone)}
 .prow.gone .pname{color:var(--gone)}
 .note{display:grid;gap:4px;margin-bottom:16px;padding:14px 16px;border-radius:16px;background:var(--gone-bg)}
@@ -206,7 +209,7 @@ table.hist{border-collapse:separate;border-spacing:0;min-width:100%;font-variant
 (function(){
 'use strict';
 var KEY='marcador-v1',MAXP=24;
-var UI={open:false,confirm:null,ct:null};
+var UI={open:false,confirm:null,ct:null,keep:false};
 
 function fresh(names,limit){return {v:1,phase:'setup',names:names||['','','',''],limit:limit||100,players:[],rounds:[],pending:{},notice:null};}
 function load(){
@@ -287,7 +290,8 @@ function undoRound(){
 }
 /*END*/
 
-function plural(n,s,p){return n+' '+(n===1?s:p);}
+function fmt(n){return String(n).replace('-','\u2212');}
+function plural(n,s,p){return fmt(n)+' '+(Math.abs(n)===1?s:p);}
 function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function $(id){return document.getElementById(id);}
 function scrollTop(){try{window.scrollTo(0,0);}catch(e){}}
@@ -330,7 +334,8 @@ function rowHTML(p){
   var v=S.pending[p.id];
   return '<li class="prow" data-id="'+p.id+'" style="--h:'+GREEN+'"><label class="pr"><span class="pos">1</span>'+
     '<span><span class="pname">'+esc(p.name)+'</span><span class="psub"></span></span>'+
-    '<input class="pin" id="in_'+p.id+'" data-id="'+p.id+'" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="next" placeholder="0" value="'+(v==null?'':esc(v))+'" aria-label="Pontos de '+esc(p.name)+' nesta rodada"></label></li>';
+    '<span class="ig"><button type="button" class="sg" data-act="sign" data-id="'+p.id+'" aria-pressed="'+(String(v||'').charAt(0)==='-')+'" aria-label="Alternar sinal de '+esc(p.name)+' (pontos negativos)">&plusmn;</button>'+
+    '<input class="pin" id="in_'+p.id+'" data-id="'+p.id+'" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="next" placeholder="0" value="'+(v==null?'':esc(v))+'" aria-label="Pontos de '+esc(p.name)+' nesta rodada"></span></label></li>';
 }
 function confirmBtn(key,label,clabel,cls){
   var on=UI.confirm===key;
@@ -345,11 +350,11 @@ function historyHTML(){
   h+='</tr></thead><tbody>';
   for(var i=S.rounds.length-1;i>=0;i--){
     h+='<tr><th class="rc" scope="row">R'+(i+1)+'</th>';
-    S.players.forEach(function(p){var v=S.rounds[i].pts[p.id];h+=v==null?'<td class="na">–</td>':'<td>'+v+'</td>';});
+    S.players.forEach(function(p){var v=S.rounds[i].pts[p.id];h+=v==null?'<td class="na">–</td>':'<td>'+fmt(v)+'</td>';});
     h+='</tr>';
   }
   h+='</tbody><tfoot><tr><th class="rc" scope="row">Total</th>';
-  S.players.forEach(function(p){var o=info[p.id];h+='<td class="'+(o.er?'gone':'')+'" style="--h:'+(o.er?0:o.hue)+'">'+st.t[p.id]+'</td>';});
+  S.players.forEach(function(p){var o=info[p.id];h+='<td class="'+(o.er?'gone':'')+'" style="--h:'+(o.er?0:o.hue)+'">'+fmt(st.t[p.id])+'</td>';});
   return h+'</tr></tfoot></table></div></section>';
 }
 function renderGame(){
@@ -371,7 +376,7 @@ function renderGame(){
     else h+='<h2 style="--h:'+GREEN+'">'+esc(w.map(function(p){return p.name;}).join(' e '))+'</h2><p class="help">Os últimos jogadores saíram juntos com a mesma pontuação.</p>';
     h+='</section>';
   }else{
-    h+='<section class="card"><h2 class="ch">Pontos tomados na rodada</h2><p class="help" style="margin:0 0 4px">Digite os pontos de cada jogador. Campo vazio vale 0.</p><ol class="plist">'+
+    h+='<section class="card"><h2 class="ch">Pontos tomados na rodada</h2><p class="help" style="margin:0 0 4px">Digite os pontos de cada jogador. Use ± para pontos negativos. Campo vazio vale 0.</p><ol class="plist">'+
       st.act.map(rowHTML).join('')+'</ol></section>';
     h+='<div class="dock"><button type="button" class="btn" data-act="finalize">Finalizar e ir para a rodada '+(n+1)+'</button></div>';
   }
@@ -395,7 +400,8 @@ function refreshLive(){
     row.classList.toggle('gone',gone);
     row.style.setProperty('--h',gone?0:o.hue);
     row.querySelector('.pos').textContent=gone?'–':o.rank;
-    row.querySelector('.psub').innerHTML=gone?'Chega a <b>'+o.pts+'</b> · sai do jogo':'Total <b>'+o.pts+'</b> · faltam '+(S.limit-o.pts);
+    var sg=row.querySelector('.sg');if(sg)sg.setAttribute('aria-pressed',String(String(S.pending[p.id]||'').charAt(0)==='-'));
+    row.querySelector('.psub').innerHTML=gone?'Chega a <b>'+fmt(o.pts)+'</b> · sai do jogo':'Total <b>'+fmt(o.pts)+'</b> · faltam '+(S.limit-o.pts);
   });
   var btn=document.querySelector('[data-act="finalize"]');
   if(btn)btn.textContent=sd.act.length<=1?'Finalizar e encerrar o jogo':'Finalizar e ir para a rodada '+(S.rounds.length+2);
@@ -406,15 +412,15 @@ function renderRank(sd){
   var h='<div class="rh"><h2>Ranking</h2>'+(live?'<span class="live">ao vivo</span>':'')+'<button type="button" class="close" id="rclose" aria-label="Fechar ranking">&times;</button></div>'+
     '<p class="rs">Limite de '+plural(S.limit,'ponto','pontos')+' · '+plural(sd.act.length,'jogador no jogo','jogadores no jogo')+(live?' · inclui a rodada em andamento':'')+'</p><ol class="rl">';
   sd.act.forEach(function(o){
-    var pct=Math.min(100,Math.round(o.pts/S.limit*100));
-    h+='<li class="rr" style="--h:'+o.hue+'"><span class="pos">'+o.rank+'</span><span class="nm">'+esc(o.p.name)+'</span><span class="pt">'+o.pts+'</span>'+
+    var pct=Math.max(0,Math.min(100,Math.round(o.pts/S.limit*100)));
+    h+='<li class="rr" style="--h:'+o.hue+'"><span class="pos">'+o.rank+'</span><span class="nm">'+esc(o.p.name)+'</span><span class="pt">'+fmt(o.pts)+'</span>'+
       '<div class="meter"><i style="width:'+pct+'%"></i></div><small>'+(over?'Vencedor':'faltam '+(S.limit-o.pts))+'</small></li>';
   });
   if(sd.out.length){
     h+='</ol><p class="sep">Eliminados</p><ol class="rl">';
     sd.out.forEach(function(o){
       var cur=o.er===S.rounds.length+1&&!status().over&&o.er>S.rounds.length;
-      h+='<li class="rr gone"><span class="pos">–</span><span class="nm">'+esc(o.p.name)+'</span><span class="pt">'+o.pts+'</span>'+
+      h+='<li class="rr gone"><span class="pos">–</span><span class="nm">'+esc(o.p.name)+'</span><span class="pt">'+fmt(o.pts)+'</span>'+
         '<div class="meter"><i style="width:100%"></i></div><small>'+(cur?'Sai nesta rodada':'Saiu na rodada '+o.er)+'</small></li>';
     });
   }
@@ -478,6 +484,12 @@ document.addEventListener('click',function(e){
   }else if(a==='rm'){
     if(S.names.length>2){S.names.splice(+b.getAttribute('data-i'),1);save();$('names').innerHTML=setupRows();$('addbtn').disabled=false;}
   }else if(a==='start')startGame();
+  else if(a==='sign'){
+    var sid=b.getAttribute('data-id'),inp=$('in_'+sid),r=inp.value;
+    r=r.charAt(0)==='-'?r.slice(1):'-'+r;
+    inp.value=r;S.pending[sid]=r;save();refreshLive();
+    UI.keep=true;inp.focus();setTimeout(function(){UI.keep=false;},80);
+  }
   else if(a==='finalize'){finalizeRound();save();render();scrollTop();}
   else if(a==='ack'){S.notice=null;save();renderGame();}
   else if(a==='undo')confirmAct('undo',function(){if(undoRound()){save();render();scrollTop();}});
@@ -488,12 +500,14 @@ document.addEventListener('input',function(e){
   if(t.classList.contains('nin')){S.names[+t.getAttribute('data-i')]=t.value;save();}
   else if(t.id==='limit'){var v=parseInt(t.value.replace(/\D/g,''),10);S.limit=isNaN(v)?'':v;save();}
   else if(t.classList.contains('pin')){
-    var raw=t.value.replace(/\D/g,'').replace(/^0+(?=\d)/,'').slice(0,7);
+    var neg=t.value.replace(/[^\d-]/g,'').charAt(0)==='-';
+    var raw=(neg?'-':'')+t.value.replace(/\D/g,'').replace(/^0+(?=\d)/,'').slice(0,7);
     t.value=raw;S.pending[t.getAttribute('data-id')]=raw;save();refreshLive();
   }
 });
 document.addEventListener('focusin',function(e){
   var t=e.target;
+  if(UI.keep)return;
   if(t.classList&&(t.classList.contains('pin')||t.id==='limit'))setTimeout(function(){try{t.select();}catch(x){}},0);
 });
 document.addEventListener('keydown',function(e){

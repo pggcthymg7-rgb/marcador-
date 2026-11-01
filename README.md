@@ -1,11 +1,11 @@
 # Marcador de Pontos (app web)
 
-Marcador de pontos por rodada com ranking ao vivo. Cada rodada você digita os pontos tomados por jogador. Quem chega à pontuação limite sai do jogo, e o jogo segue até sobrar um. Funciona sem internet depois da primeira abertura e se instala na tela inicial do iPhone como um app.
+Marcador de pontos por rodada com ranking ao vivo. Cada rodada você digita os pontos tomados por jogador, com ou sem sinal negativo. Quem chega à pontuação limite sai do jogo, e o jogo segue até sobrar um. Funciona sem internet depois da primeira abertura e se instala na tela inicial do iPhone como um app.
 
 ## Como funciona
 
 1. **Início:** adicione os jogadores e defina a pontuação limite. Toque em Iniciar jogo.
-2. **Durante:** digite os pontos tomados por cada jogador na rodada e toque em Finalizar e ir para a próxima.
+2. **Durante:** digite os pontos tomados por cada jogador na rodada e toque em Finalizar e ir para a próxima. Para pontos negativos, toque no botão **±** dentro do campo antes de digitar o número.
 3. **Ranking (aba lateral):** toque na aba "Ranking" na borda direita para abrir. Ele atualiza enquanto você digita. Em telas largas (iPad, computador) ele fica fixo ao lado.
 
 No ranking, quem tem menos pontos é o primeiro. As cores vão do verde (1º) ao vermelho (último) e o eliminado fica cinza. Jogadores empatados dividem a mesma posição.
@@ -39,4 +39,4 @@ No Android, abra no Chrome e toque em Instalar app.
 
 ## Atualizar o app
 
-Depois de mudar qualquer arquivo, aumente o número em `VERSION` no começo de `sw.js` (por exemplo `marcador-v2`). Assim os aparelhos baixam a versão nova na próxima abertura. Se o iPhone mostrar um ícone antigo, remova o app da tela inicial e adicione de novo.
+Depois de mudar qualquer arquivo, aumente o número em `VERSION` no começo de `sw.js` (por exemplo, de `marcador-v2` para `marcador-v3`). Assim os aparelhos baixam a versão nova na próxima abertura. Se o iPhone mostrar um ícone antigo, remova o app da tela inicial e adicione de novo.
